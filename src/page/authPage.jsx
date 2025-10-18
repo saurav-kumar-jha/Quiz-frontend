@@ -7,7 +7,7 @@ import api from '../util/authApi';
 import { useAuth } from '../context/AuthProvider';
 
 export default function AuthPages() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,8 +18,8 @@ export default function AuthPages() {
     dateOfBirth: '',
     role: 'teacher'
   });
-  const {user,setUser,isLoggedIn,setisLoggedIn} = useAuth()
-  const [loading, setLoading] = useState(false)
+  const {user,setUser,isLoggedIn,setisLoggedIn} = useAuth();
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState('');
 
@@ -29,9 +29,6 @@ export default function AuthPages() {
       [e.target.name]: e.target.value
     });
   };
-
-
-
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   try {

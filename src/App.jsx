@@ -7,6 +7,7 @@ import { createBrowserRouter, Outlet, RouterProvider, useLocation } from 'react-
 import AuthPages from './page/authPage'
 import TeacherDashboard from './page/teacherDashboard'
 import ForgotPassword from './page/forgetPasswordPage'
+import ResetPassword from './page/resetPasswordPage'
 
 const Home = ()=>{
   const navigate = useLocation()
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
     {
       path:"/auth/forget-password",
       element:<ForgotPassword/>
+    },
+    {
+      path:"/auth/reset-password",
+      element:<ResetPassword/>
     }
   ]
   }
