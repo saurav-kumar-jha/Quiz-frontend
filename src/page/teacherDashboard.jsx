@@ -11,6 +11,7 @@ export default function TeacherDashboard() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showAddQuestion, setShowAddQuestion] = useState(false);
   
   const [quizData, setQuizData] = useState({
     title: '',
@@ -25,32 +26,7 @@ export default function TeacherDashboard() {
     correctAnswer: 0
   });
 
-  const [previousQuizzes, setPreviousQuizzes] = useState([
-    {
-      id: 1,
-      title: 'Mathematics Quiz - Algebra',
-      date: '2025-10-10',
-      students: 45,
-      avgScore: 78,
-      link: 'https://quizmaster.com/quiz/abc123'
-    },
-    {
-      id: 2,
-      title: 'Science Quiz - Physics',
-      date: '2025-10-08',
-      students: 38,
-      avgScore: 82,
-      link: 'https://quizmaster.com/quiz/def456'
-    },
-    {
-      id: 3,
-      title: 'History Quiz - World War II',
-      date: '2025-10-05',
-      students: 52,
-      avgScore: 75,
-      link: 'https://quizmaster.com/quiz/ghi789'
-    }
-  ]);
+  const [previousQuizzes, setPreviousQuizzes] = useState([]);
 
   const teacherProfile = {
     name: 'Dr. Sarah Johnson',
@@ -327,7 +303,7 @@ export default function TeacherDashboard() {
               </div>
             )}
 
-            {activeTab === 'create' && showCreateQuiz && (
+            {activeTab === 'create' && !showAddQuestion && showCreateQuiz && (
               <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-8">
                 <h2 className="text-3xl font-bold text-white mb-6">Create New Quiz</h2>
                 
@@ -364,6 +340,11 @@ export default function TeacherDashboard() {
                       placeholder="30"
                     />
                   </div>
+                  <button
+                      className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+                    >
+                      Create Quiz
+                    </button>
                 </div>
 
                 {quizData.questions.length > 0 && (
@@ -392,6 +373,9 @@ export default function TeacherDashboard() {
                   </div>
                 )}
 
+
+                {showAddQuestion && (
+                  <>
                 <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20 mb-6">
                   <h3 className="text-xl font-bold text-white mb-4">Add Question</h3>
                   
@@ -479,6 +463,7 @@ export default function TeacherDashboard() {
                     Cancel
                   </button>
                 </div>
+                </>)}
               </div>
             )}
 
@@ -486,7 +471,22 @@ export default function TeacherDashboard() {
               <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-8">
                 <h2 className="text-3xl font-bold text-white mb-6">My Quizzes</h2>
                 <div className="space-y-4">
-                  {previousQuizzes.map((quiz) => (
+                  {
+                  previousQuizzes.length == 0 ? (
+                    <>
+                    <h1 className='text-xl text-center font-bold text-white'>Create Quizz</h1>
+                    <button
+                      onClick={() => {
+                        setActiveTab('create');
+                        setShowCreateQuiz(true);
+                      }}
+                      className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+                    >
+                      Create Quizz
+                    </button>
+                    </>
+                  ) : (
+                    previousQuizzes.map((quiz) => (
                     <div key={quiz.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 hover:border-purple-500/50 transition-all">
                       <div className="flex justify-between items-start mb-4">
                         <div>
@@ -527,7 +527,7 @@ export default function TeacherDashboard() {
                         </button>
                       </div>
                     </div>
-                  ))}
+                  )))}
                 </div>
               </div>
             )}

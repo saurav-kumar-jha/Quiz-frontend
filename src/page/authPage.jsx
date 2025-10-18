@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { Mail, Lock, User, Calendar, BookOpen, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Mail, Lock, User, Calendar, BookOpen, Eye, EyeOff, ArrowRight, Turtle, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../Redux/feature/userSlice';
+import api from '../util/authApi';
+import { useAuth } from '../context/AuthProvider';
 
 export default function AuthPages() {
+  const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -12,6 +18,10 @@ export default function AuthPages() {
     dateOfBirth: '',
     role: 'teacher'
   });
+  const {user,setUser,isLoggedIn,setisLoggedIn} = useAuth()
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -20,11 +30,99 @@ export default function AuthPages() {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert(`${isLogin ? 'Login' : 'Registration'} successful!`);
-  };
+
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const res = await dispatch(loginUser({
+  //       email:formData.email,
+  //       password:formData.password
+  //     })).unwrap()
+  //     console.log(res);
+      
+  //     navigate("/",{replace:true})
+  //   } catch (error) {
+  //     alert(error?.message || JSON.stringify(error))
+  //   }
+  // };
+
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
+    setLoading(true)
+    try{
+      const res = await api.post("/auth/login",{
+        email:formData.email,
+        password:formData.password
+      })
+      console.log(res);
+      if(res.status == 200){
+        setisLoggedIn(true)
+        const response = await api.get("/auth/me",{
+          headers:{
+            "Authorization":`Bearer ${res.data.token}`
+          }
+        })
+        // console.log("UserDetails:",response)
+        setUser({
+          id:response.data.id,
+          name:response.data.username,
+          email:response.data.email,
+          token:res.data.token,
+          created_at:response.data.created_at,
+          role:response.data.role
+        })
+        setMessage('Login successfull');
+        setMessageType('success');
+
+        setTimeout(() => {
+          navigate("/")          
+        }, 3000);
+      }else{
+        setMessage('Login failed');
+        setMessageType('error');
+      }
+      
+    }catch(err){
+      console.log(err)
+      
+      setMessage('Something went wrong');
+      setMessageType('error');
+    }
+    setLoading(false)
+  }
+
+  const handleRegister = async (e)=>{
+    e.preventDefault()
+    if(formData.password != formData.confirmPassword){
+      setMessage('Please enter same password');
+      setMessageType('error');
+    }
+    setLoading(true)
+    try{
+      const res = await api.post("/auth/register",{
+        username:formData.name,
+        email:formData.email,
+        password:formData.confirmPassword,
+        role:formData.role
+      })
+      console.log(res);
+      if(res.status == 200){     
+      setMessage('Register successfull');
+      setMessageType('success');
+      }else{
+        setMessage('Something went wrong');
+        setMessageType('error');
+      }
+      
+    }catch(err){
+      console.log(err)
+      setMessage('Check your credentials');
+      setMessageType('error');
+    }
+    setLoading(false)
+
+  }
 
   const handleOAuthLogin = (provider) => {
     console.log(`Login with ${provider}`);
@@ -136,6 +234,29 @@ export default function AuthPages() {
               <span className="px-4 bg-slate-900/80 text-gray-400 cursor-pointer">Or continue with email</span>
             </div>
           </div>
+
+          {message && (
+            <div
+              className={`mb-6 p-4 rounded-xl border ${
+                messageType === 'success'
+                  ? 'bg-green-500/10 border-green-500/30'
+                  : 'bg-red-500/10 border-red-500/30'
+              } flex items-start space-x-3`}
+            >
+              {messageType === 'success' ? (
+                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              )}
+              <p
+                className={`text-sm ${
+                  messageType === 'success' ? 'text-green-300' : 'text-red-300'
+                }`}
+              >
+                {message}
+              </p>
+            </div>
+          )}
 
           <div className="space-y-4">
             {!isLogin && (
@@ -274,9 +395,9 @@ export default function AuthPages() {
                   />
                   <span className="text-sm text-gray-400 cursor-pointer">Remember me</span>
                 </label>
-                <a href="#" className="text-sm text-purple-400 cursor-pointer hover:text-purple-300 transition-colors">
+                <Link to="/auth/forget-password" className="text-sm text-purple-400 cursor-pointer hover:text-purple-300 transition-colors">
                   Forgot Password?
-                </a>
+                </Link>
               </div>
             )}
 
@@ -299,13 +420,41 @@ export default function AuthPages() {
               </label>
             )}
 
+            { isLogin ? (
+            <>
             <button
               onClick={handleSubmit}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 cursor-pointer rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center justify-center group"
             >
-              {isLogin ? 'Login' : 'Create Account'}
+              {loading?(
+                <>
+                
+                <Loader className="w-5 h-5 animate-spin" />
+                Login...
+                </>
+              )
+              :'Login'}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
+            </>):(
+            <>
+            <button
+              onClick={handleRegister}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 cursor-pointer rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center justify-center group"
+            >
+              {loading?(
+                <>
+                
+                  <Loader className="w-5 h-5 animate-spin" />
+                  Creating...
+                </>
+              )
+              :'Create Account'}
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+            </>)
+              
+            }
           </div>
 
           <p className="text-center text-gray-400 mt-6 text-sm">

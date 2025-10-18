@@ -6,6 +6,7 @@ import Footer from './components/footer'
 import { createBrowserRouter, Outlet, RouterProvider, useLocation } from 'react-router-dom'
 import AuthPages from './page/authPage'
 import TeacherDashboard from './page/teacherDashboard'
+import ForgotPassword from './page/forgetPasswordPage'
 
 const Home = ()=>{
   const navigate = useLocation()
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
     {
       path:"/teacher/dashboard",
       element:<TeacherDashboard/>
+    },
+    {
+      path:"/auth/forget-password",
+      element:<ForgotPassword/>
     }
   ]
   }

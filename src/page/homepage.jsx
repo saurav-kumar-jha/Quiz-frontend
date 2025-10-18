@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, CheckCircle, Users, Zap, Shield, ArrowRight, Star, BookOpen, Award, Clock, TrendingUp } from 'lucide-react';
+import { useAuth } from '../context/AuthProvider';
 
 export default function QuizMasterHomepage() {
+  const {user,setUser,isLoggedIn,setisLoggedIn} = useAuth()
+  console.log("User:",user,"islogin:",isLoggedIn);
   
 
   const testimonials = [

@@ -28,7 +28,7 @@ function Nav() {
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className="text-white hover:text-purple-400 transition-colors font-medium">Home</Link>
               {/* <Link to="/teacher/dashboard" className="text-white hover:text-purple-400 transition-colors font-medium">Features</Link> */}
-              <Link to="#quiz" className="text-white hover:text-purple-400 transition-colors font-medium">Create Quiz</Link>
+              <Link to="/teacher/dashboard" className="text-white hover:text-purple-400 transition-colors font-medium">Create Quiz</Link>
               {/* <Link to="#testimonials" className="text-white hover:text-purple-400 transition-colors font-medium">Testimonials</Link> */}
               <Link to="#contact" className="text-white hover:text-purple-400 transition-colors font-medium">Contact</Link>
               <button onClick={()=>navigate("/auth")} className="bg-gradient-to-r cursor-pointer from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 font-semibold">
@@ -45,7 +45,7 @@ function Nav() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu */} 
         {isMenuOpen && (
           <div className="md:hidden bg-slate-900/98 backdrop-blur-lg">
             <div className="px-2 pt-2 pb-3 space-y-1">
