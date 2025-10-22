@@ -18,10 +18,20 @@ export default function AuthPages() {
     dateOfBirth: '',
     role: 'teacher'
   });
-  const {user,setUser,isLoggedIn,setisLoggedIn} = useAuth();
+  const {user,setUser,isLoggedIn,setIsLoggedIn} = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState('');
+
+  useEffect(()=>{
+    if(isLoggedIn){
+      alert("You're already logged In")
+      setTimeout(() => {
+        
+        navigate("/")
+      }, 2000);
+    }
+  },[])
 
   const handleChange = (e) => {
     setFormData({
@@ -54,7 +64,7 @@ export default function AuthPages() {
       })
       console.log(res);
       if(res.status == 200){
-        setisLoggedIn(true)
+        setIsLoggedIn(true)
         const response = await api.get("/auth/me",{
           headers:{
             "Authorization":`Bearer ${res.data.token}`
