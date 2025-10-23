@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthProvider';
 import api from '../util/authApi';
+import { useNavigate } from 'react-router-dom';
 
 export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -17,7 +18,8 @@ export default function TeacherDashboard() {
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [showCreateQuizOpt, setShowCreateQuizOpt] = useState(true)
   const [userQuizData, setUserQuizData] = useState()
-  const {user,setUser,isLoggedIn,setIsLoggedIn} = useAuth();  
+  const {user,setUser,isLoggedIn,setIsLoggedIn, logout} = useAuth();  
+  const [quizId, setQuizId] = useState('')
   const [quizData, setQuizData] = useState({
     title: '',
     description: '',
@@ -31,15 +33,15 @@ export default function TeacherDashboard() {
   });
   const [previousQuizzes, setPreviousQuizzes] = useState([]);
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // console.log(user, isLoggedIn)
-  // console.log(userQuizData)
+  // console.log(userQuizData) 
 
   useEffect(()=>{
-    if(localStorage.getItem("quizData") != null){
-      setUserQuizData(JSON.parse(localStorage.getItem("quizData")))
-      // setShowAddQuestion(true)
-      // setShowCreateQuizOpt(false)
+    if(!isLoggedIn){
+      navigate("/auth")
     }
   },[])
 
@@ -131,10 +133,10 @@ export default function TeacherDashboard() {
 
   const submitQuiz =async () => {
     setLoading(true)
+    // console.log("quizId:",quizId,"questions:",quizData.questions)
     if (quizData.questions.length > 0) {
-      // console.log("quizId:",userQuizData.Quiz_Id,"questions:",quizData.questions)
-      const res = await api.post(`/quiz/${userQuizData.Quiz_Id}/addQuestion`,{
-        quizId:userQuizData.Quiz_Id,
+      const res = await api.post(`/quiz/${quizId}/addQuestion`,{
+        quizId:quizId,
         questions:quizData.questions
       },{
         headers:{
@@ -142,10 +144,10 @@ export default function TeacherDashboard() {
         }
       })
 
-      console.log("res:",res)
+      // console.log("res:",res)
 
-      setShowShareModal(true);
-      setShowCreateQuiz(false);
+      // setShowShareModal(true);
+      setShowCreateQuiz(true);
       
       setPreviousQuizzes([
         {
@@ -202,11 +204,12 @@ export default function TeacherDashboard() {
           "Authorization":`Bearer ${user.token}`
         }
       })
+      setActiveTab("quizzes")
       // console.log("res:",res)
-      setUserQuizData(res.data)
-      localStorage.setItem("quizData",JSON.stringify(res.data))
-      setShowAddQuestion(true)
-      setShowCreateQuizOpt(false)
+      // setUserQuizData(res.data)
+      // localStorage.setItem("quizData",JSON.stringify(res.data))
+      // setShowAddQuestion(true)
+      // setShowCreateQuizOpt(false)
       
     } catch (error) {
       console.log(error)
@@ -244,6 +247,19 @@ export default function TeacherDashboard() {
     }
   }
 
+  const handleAddQuestion = (id)=>{
+    setQuizId(id)
+    setShowAddQuestion(true)
+    setActiveTab('create')
+    setShowCreateQuizOpt(false)
+    setShowCreateQuiz(true)
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate("/")
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <nav className="bg-slate-900/95 backdrop-blur-lg shadow-lg border-b border-purple-500/20">
@@ -261,7 +277,7 @@ export default function TeacherDashboard() {
                 {/* <div className="text-white font-semibold">{teacherProfile.name}</div>
                 <div className="text-gray-400 text-sm">{teacherProfile.role}</div> */}
               </div>
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
                 {/* {teacherProfile.avatar} */}
               </div>
               <button className="text-gray-400 hover:text-white transition-colors">
@@ -332,86 +348,123 @@ export default function TeacherDashboard() {
           </div>
 
           <div className="lg:col-span-3">
-            {activeTab === 'profile' && (
-              <div className="space-y-6">
-                <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-8">
-                  <div className="flex items-center space-x-6 mb-8">
-                    <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                      {teacherProfile.avatar}
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold text-white mb-2">{teacherProfile.name}</h2>
-                      <p className="text-gray-400">{teacherProfile.email}</p>
-                      <div className="flex items-center space-x-4 mt-2">
-                        <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm">
-                          {teacherProfile.role}
-                        </span>
-                        <span className="text-gray-400 text-sm">Joined {teacherProfile.joinDate}</span>
-                      </div>
-                    </div>
-                  </div>
+          {activeTab === 'profile' && (
+  <div className="space-y-6">
+    <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-8">
+      <div className="flex items-center space-x-6 mb-8">
+        <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+          {teacherProfile.avatar}
+        </div>
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold text-white mb-2">{teacherProfile.name}</h2>
+          <p className="text-gray-400">{teacherProfile.email}</p>
+          <div className="flex items-center space-x-4 mt-2">
+            <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm">
+              {teacherProfile.role}
+            </span>
+            <span className="text-gray-400 text-sm">Joined {teacherProfile.joinDate}</span>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          className="flex items-center cursor-pointer space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition-all duration-300"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Logout</span>
+        </button>
+      </div>
 
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400">Total Quizzes</span>
-                        <List className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <div className="text-3xl font-bold text-white">{teacherProfile.totalQuizzes}</div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400">Total Students</span>
-                        <Users className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <div className="text-3xl font-bold text-white">{teacherProfile.totalStudents}</div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400">Subject</span>
-                        <BookOpen className="w-5 h-5 text-purple-400" />
-                      </div>
-                      <div className="text-lg font-bold text-white">{teacherProfile.subject}</div>
-                    </div>
-                  </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-400">Total Quizzes</span>
+            <List className="w-5 h-5 text-purple-400" />
+          </div>
+          <div className="text-3xl font-bold text-white">{teacherProfile.totalQuizzes}</div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-400">Total Students</span>
+            <Users className="w-5 h-5 text-purple-400" />
+          </div>
+          <div className="text-3xl font-bold text-white">{teacherProfile.totalStudents}</div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-400">Subject</span>
+            <BookOpen className="w-5 h-5 text-purple-400" />
+          </div>
+          <div className="text-lg font-bold text-white">{teacherProfile.subject}</div>
+        </div>
+      </div>
 
-                  <div className="mt-8">
-                    <h3 className="text-xl font-bold text-white mb-4">Profile Information</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
-                        <input
-                          type="text"
-                          value={teacherProfile.name}
-                          className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
-                        <input
-                          type="email"
-                          value={teacherProfile.email}
-                          className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Role</label>
-                        <input
-                          type="text"
-                          value={teacherProfile.role}
-                          className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
-                          readOnly
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+      <div className="mt-8">
+        <h3 className="text-xl font-bold text-white mb-4">Profile Information</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
+            <input
+              type="text"
+              value={teacherProfile.name}
+              className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
+              readOnly
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+            <input
+              type="email"
+              value={teacherProfile.email}
+              className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
+              readOnly
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Role</label>
+            <input
+              type="text"
+              value={teacherProfile.role}
+              className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
+              readOnly
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Logout Confirmation Modal */}
+{showLogoutConfirm && (
+  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="bg-slate-900 rounded-3xl shadow-2xl border border-purple-500/20 p-8 max-w-md w-full">
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <LogOut className="w-8 h-8 text-red-400" />
+        </div>
+        <h3 className="text-2xl font-bold text-white mb-2">Logout Confirmation</h3>
+        <p className="text-gray-400">Are you sure you want to logout from your account?</p>
+      </div>
+
+      <div className="flex space-x-3">
+        <button
+          onClick={() => setShowLogoutConfirm(false)}
+          className="flex-1 bg-slate-700 cursor-pointer hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleLogout}
+          className="flex-1 bg-red-500 hover:bg-red-600 cursor-pointer text-white font-semibold py-3 rounded-xl transition-all duration-300"
+        >
+          Yes, Logout
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
             {activeTab === 'create'  && showCreateQuiz && (
               <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-8">
@@ -576,7 +629,7 @@ export default function TeacherDashboard() {
                 <div className="flex space-x-4">
                   <button
                     onClick={submitQuiz}
-                    disabled={!userQuizData || quizData.questions.length === 0}
+                    disabled={ quizData.questions.length === 0}
                     className="flex-1 items-center justify-center bg-gradient-to-r cursor-pointer from-purple-500 to-pink-500 text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {
@@ -611,6 +664,7 @@ export default function TeacherDashboard() {
                   previousQuizzes.length == 0 ? (
                     <>
                     <h1 className='text-xl text-center font-bold text-white'>Create Quizz</h1>
+                    <p className='text-sm text-center text-gray-300'>Refresh page if you created quiz before..</p>
                     <button
                       onClick={() => {
                         setActiveTab('create');
@@ -626,7 +680,7 @@ export default function TeacherDashboard() {
                     <div key={quiz.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 hover:border-purple-500/50 transition-all">
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-xl font-bold text-white mb-2">{quiz.name}</h3>
+                          <h3 className="text-xl font-bold text-white mb-2 hover:underline cursor-pointer hover:text-gray-400" onClick={()=>handleAddQuestion(quiz.id)}>{quiz.name}</h3>
                           <div className="flex items-center space-x-4 text-sm text-gray-400">
                             <span className="flex items-center space-x-1">
                               <Clock className="w-4 h-4" />

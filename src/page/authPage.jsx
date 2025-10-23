@@ -437,11 +437,13 @@ export default function AuthPages() {
                 <>
                 
                 <Loader className="w-5 h-5 animate-spin" />
-                Login...
                 </>
               )
-              :'Login'}
+              :<>
+              Login
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+              }
             </button>
             </>):(
             <>
@@ -453,7 +455,6 @@ export default function AuthPages() {
                 <>
                 
                   <Loader className="w-5 h-5 animate-spin" />
-                  Creating...
                 </>
               )
               :'Create Account'}
