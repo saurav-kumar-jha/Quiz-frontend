@@ -10,7 +10,9 @@ import ForgotPassword from './page/forgetPasswordPage'
 import ResetPassword from './page/resetPasswordPage'
 import { useAuth } from './context/AuthProvider'
 import api from './util/authApi'
-import QuizDetailPage from './page/quizDetailPage'
+import StudentQuizPage from './page/testPage'
+import QuizResultsDetailPage from './page/quizResultDetailPage'
+import ContactFeedbackPage from './page/contactPage'
 
 const Home = ()=>{
   const navigate = useLocation()
@@ -47,9 +49,16 @@ const router = createBrowserRouter([
     },
     {
       path:"/quiz/:id",
-      element:<QuizDetailPage />
+      element:<QuizResultsDetailPage />
+    },
+    {
+      path:"/contact",
+      element:<ContactFeedbackPage/>
     }
-  ]
+  ]},
+  {
+    path:"/test/:id",
+    element:<StudentQuizPage/>
   }
 ])
 function App() {

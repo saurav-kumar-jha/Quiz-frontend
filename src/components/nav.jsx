@@ -30,8 +30,8 @@ function Nav() {
             
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className="text-white hover:text-purple-400 transition-colors font-medium">Home</Link>
-              <Link to="/teacher/dashboard" className="text-white hover:text-purple-400 transition-colors font-medium">Create Quiz</Link>
-              <Link to="#contact" className="text-white hover:text-purple-400 transition-colors font-medium">Contact</Link>
+              <Link to="/teacher/dashboard?tab=create" className="text-white hover:text-purple-400 transition-colors font-medium">Create Quiz</Link>
+              <Link to="/contact" className="text-white hover:text-purple-400 transition-colors font-medium">Contact</Link>
               
               {isLoggedIn ? (
                 <button 
@@ -66,7 +66,7 @@ function Nav() {
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link to="/" className="block px-3 py-2 text-white hover:bg-purple-500/20 rounded-md">Home</Link>
               <Link to="/teacher/dashboard" className="block px-3 py-2 text-white hover:bg-purple-500/20 rounded-md">Create Quiz</Link>
-              <Link to="#contact" className="block px-3 py-2 text-white hover:bg-purple-500/20 rounded-md">Contact</Link>
+              <Link to="/contact" className="block px-3 py-2 text-white hover:bg-purple-500/20 rounded-md">Contact</Link>
               
               {isLoggedIn ? (
                 <button 

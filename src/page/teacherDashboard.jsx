@@ -3,14 +3,17 @@ import {
   BookOpen, Plus, List, User, LogOut, BarChart, 
   Share2, Copy, CheckCircle, X, Trash2, Edit, 
   Facebook, Twitter, Linkedin, Mail, Clock, Users, 
-  Loader
+  Loader,
+  CircleOff,
+  Circle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthProvider';
 import api from '../util/authApi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
@@ -38,6 +41,16 @@ export default function TeacherDashboard() {
 
   // console.log(user, isLoggedIn)
   // console.log(userQuizData) 
+
+  useEffect(()=>{
+    const tabfromUrl = searchParams.get('tab')
+    if(tabfromUrl){
+      setActiveTab(tabfromUrl)
+      if(tabfromUrl == 'create'){
+        setShowCreateQuiz(true);
+      }
+    }
+  },[searchParams])
 
   useEffect(()=>{
     if(!isLoggedIn){
@@ -259,6 +272,25 @@ export default function TeacherDashboard() {
     logout()
     navigate("/")
   };
+
+  const handleQuizStatus = async (id)=>{
+    try {
+      const res = await api.put(`/quiz/${id}/close`,{},{
+        headers:{
+          "Authorization":`Bearer ${user.token}`,
+          "Content-Type":"application/json"
+        }
+      })
+      console.log("close res: ",res)
+      setPreviousQuizzes((prev) =>
+        prev.map((quiz) =>
+          quiz.id === id ? { ...quiz, close: !quiz.close } : quiz
+        )
+      );
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -715,8 +747,18 @@ export default function TeacherDashboard() {
                           <Share2 className="w-4 h-4" />
                           <span>Share</span>
                         </button>
-                        <button className="px-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-all duration-300">
-                          <Edit className="w-4 h-4" />
+                        <button onClick={()=>handleQuizStatus(quiz.id)} className="px-4 bg-slate-700 cursor-pointer hover:bg-slate-600 text-white rounded-lg transition-all duration-300">
+                          {
+                            quiz.close ? (
+                              <>
+                                <CircleOff title='Open the Quiz'/>
+                              </>
+                            ):(
+                              <>
+                                <Circle title='Close the Quiz' />
+                              </>
+                            )
+                          }
                         </button>
                         <button onClick={()=>{
                           handleDeleteQuiz(quiz.id)
@@ -737,7 +779,7 @@ export default function TeacherDashboard() {
                   {previousQuizzes.map((quiz) => (
                     <div key={quiz.id} className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 rounded-xl p-6 border border-slate-700">
                       <h3 className="text-xl font-bold text-white mb-4">{quiz.name}</h3>
-                      <div className="grid md:grid-cols-3 gap-4">
+                      {/* <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/20">
                           <div className="text-gray-400 text-sm mb-1">Total Students</div>
                           <div className="text-2xl font-bold text-white">{quiz.students}</div>
@@ -750,8 +792,8 @@ export default function TeacherDashboard() {
                           <div className="text-gray-400 text-sm mb-1">Completion Rate</div>
                           <div className="text-2xl font-bold text-green-400">94%</div>
                         </div>
-                      </div>
-                      <button className="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 rounded-lg transition-all duration-300">
+                      </div> */}
+                      <button className="mt-4 w-full cursor-pointer bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 rounded-lg transition-all duration-300" onClick={()=>navigate(`/quiz/${quiz.id}`)} >
                         View Detailed Analytics
                       </button>
                     </div>
