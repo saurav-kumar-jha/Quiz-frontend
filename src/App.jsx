@@ -64,19 +64,19 @@ const router = createBrowserRouter([
 function App() {
   const {user,setUser,isLoggedIn,setIsLoggedIn} = useAuth();
 
-  useEffect(()=>{
-    const validate_token = async()=>{
-      const res = await api.get(`/test/validate/${user.token}`)
-      // console.log("isvalid",res)
+  // useEffect(()=>{
+  //   const validate_token = async()=>{
+  //     const res = await api.get(`/test/validate/${user.token}`)
+  //     // console.log("isvalid",res)
 
-      if(res.status != 200){
-        setUser({ id: "", username: "", email: "", token: "", created_at: "", role: "" });
-    setIsLoggedIn(false);
-    localStorage.removeItem("user");
-      }
-    }
-    validate_token()
-  },[])
+  //     if(res.status != 200){
+  //       setUser({ id: "", username: "", email: "", token: "", created_at: "", role: "" });
+  //   setIsLoggedIn(false);
+  //   localStorage.removeItem("user");
+  //     }
+  //   }
+  //   validate_token()
+  // },[])
   return (
     <>
       <RouterProvider router={router}/>

@@ -21,7 +21,7 @@ export default function TeacherDashboard() {
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [showCreateQuizOpt, setShowCreateQuizOpt] = useState(true)
   const [userQuizData, setUserQuizData] = useState()
-  const {user,setUser,isLoggedIn,setIsLoggedIn, logout} = useAuth();  
+  const {user,setUser,isLoggedIn,setIsLoggedIn, logout, Isloading} = useAuth();  
   const [quizId, setQuizId] = useState('')
   const [quizData, setQuizData] = useState({
     title: '',
@@ -59,6 +59,11 @@ export default function TeacherDashboard() {
   },[])
 
   useEffect(() => {
+
+    if(Isloading || !user.token){
+      return;
+    }
+
     const fetchQuizz = async ()=>{
       try {
         const res = await api.get(`/auth/${user.id}`,{
@@ -69,13 +74,19 @@ export default function TeacherDashboard() {
         console.log(res.data[0].quiz)
         const quiz = res.data[0]?.quiz || []
         setPreviousQuizzes(quiz)
+        setQuizData(prev => ({
+          ...prev,
+          questions: quiz.questions && quiz.questions.length > 0 
+            ? quiz.questions 
+            : prev.questions
+        }));
       } catch (error) {
-        console.error("Error:",error.message)
+        console.error("Error:",error.message) 
       }
     }
     fetchQuizz()
     
-  }, [])
+  }, [user, loading])
   
 
   const teacherProfile = {
@@ -91,7 +102,7 @@ export default function TeacherDashboard() {
     : "Unknown",
     totalQuizzes: previousQuizzes.length,
     totalStudents: 350,
-    avatar: user.name.charAt(0).toUpperCase()
+    avatar: user?.name?.charAt(0).toUpperCase()
   };
 
   const addOption = () => {
@@ -169,7 +180,7 @@ export default function TeacherDashboard() {
           date: new Date().toISOString().split('T')[0],
           students: 0,
           avgScore: 0,
-          link: link
+          link: ''
         },
         ...previousQuizzes
       ]);
@@ -712,7 +723,7 @@ export default function TeacherDashboard() {
                     <div key={quiz.id} className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 hover:border-purple-500/50 transition-all">
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-xl font-bold text-white mb-2 hover:underline cursor-pointer hover:text-gray-400" onClick={()=>handleAddQuestion(quiz.id)}>{quiz.name}</h3>
+                          <h3 className="text-xl font-bold text-white mb-2 hover:underline cursor-pointer hover:text-gray-400" onClick={()=>navigate(`/quiz/${quiz.id}`)}>{quiz.name}</h3>
                           <div className="flex items-center space-x-4 text-sm text-gray-400">
                             <span className="flex items-center space-x-1">
                               <Clock className="w-4 h-4" />

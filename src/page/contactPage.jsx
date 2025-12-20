@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Mail, MessageSquare, Star, Lightbulb, 
   Send, CheckCircle, User, Phone, AlertCircle,
   MessageCircle, Award, ThumbsUp, Loader
 } from 'lucide-react';
+import { useAuth } from '../context/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 export default function ContactFeedbackPage() {
   const [activeTab, setActiveTab] = useState('contact');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const {user, isLoggedIn} = useAuth();  
+  const navigate = useNavigate()
   
   // Contact Form State
   const [contactData, setContactData] = useState({
@@ -42,6 +46,12 @@ export default function ContactFeedbackPage() {
     category: '',
     suggestion: ''
   });
+
+  useEffect(()=>{
+    if(!isLoggedIn){
+      navigate("/auth")
+    }
+  },[])
 
   const resetForm = () => {
     setContactData({ name: '', email: '', phone: '', reason: '', message: '' });

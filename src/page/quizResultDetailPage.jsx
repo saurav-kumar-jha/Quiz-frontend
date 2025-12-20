@@ -2,23 +2,38 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Award, TrendingUp, Calendar, Mail, 
   User, Hash, Star, Download, Filter, Search,
-  ArrowLeft, Clock, CheckCircle, Loader
+  ArrowLeft, Clock, CheckCircle, Loader, Plus, X, Trash2, Send
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import api from '../util/authApi';
+import { useAuth } from '../context/AuthProvider';
 
 export default function QuizResultsDetailPage() {
-  // Simulating useParams - Replace with actual
   const { id } = useParams()
   const [mockResponse, setMockResponse] = useState(null)
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('date'); // date, score, name
+  const [sortBy, setSortBy] = useState('date');
+  const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {user,setUser,isLoggedIn,setIsLoggedIn, logout, Isloading} = useAuth();  
+  const [newQuestion, setNewQuestion] = useState({
+    question: '',
+    options: ['', '', '', ''],
+    correctAnswer: ''
+  });
+  const [quizQuestions, setQuizQuestions] = useState([])
+  const [quizDetails, setQuizDetails] = useState()
 
   useEffect(() => {
+    if(Isloading || !user?.token){
+      return;
+    }
     fetchResults();
+    fetchQuizDetails()
   }, [id]);
 
   const fetchResults = async () => {
@@ -39,6 +54,20 @@ export default function QuizResultsDetailPage() {
   useEffect(() => {
     handleSearch();
   }, [searchQuery, results]);
+
+
+  const fetchQuizDetails = async()=>{
+    const res = await api.get(`quiz/${id}`,{
+      "headers":{
+        "Authorization": `Bearer ${user.token}`
+      }
+    })
+    console.log(res)
+    setQuizDetails(res.data)
+    if(res.data?.questions){
+      setQuizQuestions(res.data?.questions)
+    }
+  }
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -76,6 +105,98 @@ export default function QuizResultsDetailPage() {
     }
 
     setFilteredResults(sorted);
+  };
+
+  const addOption = () => {
+    if (newQuestion.options.length < 6) {
+      setNewQuestion({
+        ...newQuestion,
+        options: [...newQuestion.options, '']
+      });
+    }
+  };
+
+  const removeOption = (index) => {
+    if (newQuestion.options.length > 4) {
+      const newOptions = newQuestion.options.filter((_, i) => i !== index);
+      setNewQuestion({
+        ...newQuestion,
+        options: newOptions,
+        correctAnswer: ''
+      });
+    }
+  };
+
+  const updateOption = (index, value) => {
+    const newOptions = [...newQuestion.options];
+    newOptions[index] = value;
+    setNewQuestion({
+      ...newQuestion,
+      options: newOptions
+    });
+  };
+
+  const addQuestion = () => {
+    if (newQuestion.question && newQuestion.options.every(opt => opt.trim()) && newQuestion.correctAnswer) {
+      setQuestions([
+        ...questions,
+        {
+          id: Date.now(),
+          ...newQuestion
+        }
+      ]);
+      setNewQuestion({
+        question: '',
+        options: ['', '', '', ''],
+        correctAnswer: ''
+      });
+      setShowAddQuestion(false);
+    }
+  };
+
+  const deleteQuestion = (questionId) => {
+    setQuestions(questions.filter(q => q.id !== questionId));
+  };
+
+  const handleSubmitQuestions = async () => {
+    if (questions.length === 0) {
+      alert('Please add at least one question before submitting');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Prepare data for API
+    const submissionData = {
+      questions: questions.map(q => ({
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer
+      }))
+    };
+
+    console.log('Submitting Questions to Server:', submissionData);
+
+    try {
+      // Replace with your actual API call
+      // const response = await api.post(`/quiz/${id}/questions`, submissionData, {
+      //   headers: {
+      //     "Authorization": `Bearer ${user.token}`
+      //   }
+      // });
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      alert(`Successfully submitted ${questions.length} question(s)!`);
+      setQuestions([]); // Clear questions after successful submission
+      
+    } catch (error) {
+      console.error('Error submitting questions:', error);
+      alert('Failed to submit questions. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -155,29 +276,190 @@ export default function QuizResultsDetailPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 mt-6">
-          {/* <button
-            onClick={() => window.history.back()}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Quiz</span>
-          </button> */}
-          
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Quiz Results</h1>
-              <p className="text-gray-400">Detailed submission report</p>
+              {/* <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Quiz Management</h1>
+              <p className="text-gray-400">View results and manage questions</p> */}
             </div>
             
-            <button
-              onClick={exportToCSV}
-              className="flex items-center cursor-pointer space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl transition-all duration-300"
-            >
-              <Download className="w-5 h-5" />
-              <span>Export CSV</span>
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAddQuestion(true)}
+                className="flex items-center cursor-pointer space-x-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl transition-all duration-300"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Add Question</span>
+              </button>
+              <button
+                onClick={exportToCSV}
+                className="flex items-center cursor-pointer space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl transition-all duration-300"
+              >
+                <Download className="w-5 h-5" />
+                <span>Export CSV</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Add Question Modal */}
+        {showAddQuestion && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-3xl shadow-2xl border border-purple-500/20 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-white">Add New Question</h3>
+                <button
+                  onClick={() => setShowAddQuestion(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Question *</label>
+                  <input
+                    type="text"
+                    value={newQuestion.question}
+                    onChange={(e) => setNewQuestion({...newQuestion, question: e.target.value})}
+                    className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-purple-500"
+                    placeholder="Enter your question"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-300">Options (4-6) *</label>
+                    {newQuestion.options.length < 6 && (
+                      <button
+                        onClick={addOption}
+                        className="text-purple-400 hover:text-purple-300 text-sm flex items-center space-x-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Option</span>
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {newQuestion.options.map((option, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="correctAnswer"
+                          checked={newQuestion.correctAnswer === option}
+                          onChange={() => setNewQuestion({...newQuestion, correctAnswer: option})}
+                          className="w-5 h-5 text-purple-500 focus:ring-purple-500"
+                          disabled={!option.trim()}
+                        />
+                        <input
+                          type="text"
+                          value={option}
+                          onChange={(e) => updateOption(index, e.target.value)}
+                          className="flex-1 bg-slate-800/50 border border-slate-700 text-white rounded-xl py-2 px-4 focus:outline-none focus:border-purple-500"
+                          placeholder={`Option ${index + 1}`}
+                        />
+                        {newQuestion.options.length > 4 && (
+                          <button
+                            onClick={() => removeOption(index)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Fill in all options first, then select the correct answer</p>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={addQuestion}
+                    disabled={!newQuestion.question || !newQuestion.options.every(opt => opt.trim()) || !newQuestion.correctAnswer}
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add Question
+                  </button>
+                  <button
+                    onClick={() => setShowAddQuestion(false)}
+                    className="px-6 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Questions List with Submit Button */}
+        {questions.length > 0 && (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-white">Added Questions ({questions.length})</h2>
+              <button
+                onClick={handleSubmitQuestions}
+                disabled={isSubmitting}
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-lg hover:shadow-green-500/50 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    <span>Submit All Questions</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="space-y-4">
+              {questions.map((q, index) => (
+                <div key={q.id} className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-white mb-3">
+                        Q{index + 1}. {q.question}
+                      </h3>
+                      <div className="space-y-2">
+                        {q.options.map((option, optIndex) => (
+                          <div
+                            key={optIndex}
+                            className={`flex items-center space-x-3 p-3 rounded-lg ${
+                              option === q.correctAnswer
+                                ? 'bg-green-500/10 border border-green-500/30'
+                                : 'bg-slate-800/50 border border-slate-700'
+                            }`}
+                          >
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              option === q.correctAnswer ? 'bg-green-500' : 'bg-slate-700'
+                            }`}>
+                              {option === q.correctAnswer && <CheckCircle className="w-4 h-4 text-white" />}
+                            </div>
+                            <span className={`${
+                              option === q.correctAnswer ? 'text-green-300 font-semibold' : 'text-gray-300'
+                            }`}>
+                              {option}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteQuestion(q.id)}
+                      className="ml-4 text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -335,6 +617,52 @@ export default function QuizResultsDetailPage() {
             </div>
           </div>
         )}
+      </div>
+      
+      {/* Questions  */}
+      <div className='mb-6 mt-4 px-4 py-6 text-gray-400 bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 overflow-hidden'>
+
+          <div className="mb-6">
+          <h1 className="text-3xl font-bold text-white">{quizDetails?.name}</h1>
+          <p className="text-gray-400">{quizDetails?.desc}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Duration: {quizDetails?.valid_till} mins • Created at: {new Date(quizDetails?.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        {
+          quizQuestions.length == 0 ? (
+            <>
+              <p className='text-lg text-center'>No Questions</p>
+              <button onClick={() => setShowAddQuestion(true)}
+                className="flex items-center  cursor-pointer space-x-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl transition-all duration-300" >Add Questions</button>
+            </>
+          ):(
+            <div className='space-y-2'>
+             {quizQuestions.map((q, index)=>(
+              <div key={q.id} className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-6">
+                <p className="text-lg font-bold text-white mb-3">Q{index + 1}. {q.title}</p>
+                <div className='space-y-2'>
+                {
+                  q.options.map((option, optIndex)=>(
+                    <div key={optIndex} className={`flex items-center space-x-3 p-3 rounded-lg ${
+                      option === q.correctAnswer
+                        ? "bg-green-500/10 border border-green-500/30"
+                        : "bg-slate-800/50 border border-slate-700"
+                    }`}>
+                      <p className={`${
+                        option === q.correctAnswer
+                         ? "text-green-300 font-semibold"
+                         : "text-gray-300"
+                      }`}>{option}</p>
+                    </div>
+                  ))
+                }
+                </div>
+              </div>
+            ))}
+            </div>
+          )
+        }
       </div>
     </div>
   );
