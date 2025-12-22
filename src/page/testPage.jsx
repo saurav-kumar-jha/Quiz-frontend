@@ -104,22 +104,31 @@ export default function StudentQuizPage() {
     setIsSubmitted(true);
     setShowSubmitConfirm(false);
 
-    const submissionData = {
-      studentName,
-      quizName: quizData?.quizName,
-      answers: selectedAnswers,
-      timeUsed: (quizData?.valid * 60) - timeLeft,
-      submittedAt: new Date().toISOString()
-    };
+    // const submissionData = {
+    //   studentName,
+    //   quizName: quizData?.quizName,
+    //   answers: selectedAnswers,
+    //   timeUsed: (quizData?.valid * 60) - timeLeft,
+    //   submittedAt: new Date().toISOString()
+    // };
 
-    console.log('Quiz Submitted:', submissionData);
+    // console.log('Quiz Submitted:', submissionData);
 
     // ✅ (Optional) Send submission to backend
-    // try {
-    //   await api.post('/student/submit', submissionData);
-    // } catch (error) {
-    //   console.error('Error submitting quiz:', error);
-    // }
+    try {
+
+      const payload = {
+        name: studentName,
+        email:"demo@email.com",
+        rollno:"001",
+        answers:selectedAnswers
+      }
+      console.log("Payload:",payload)
+      const res = await api.post(`/student/${id}/submit` ,payload);
+      console.log("Response:",res)
+    } catch (error) {
+      console.error('Error submitting quiz:', error);
+    }
   };
 
   const getAnsweredCount = () => Object.keys(selectedAnswers).length;

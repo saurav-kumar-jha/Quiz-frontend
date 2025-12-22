@@ -88,6 +88,7 @@ export default function TeacherDashboard() {
     
   }, [user, loading])
   
+  
 
   const teacherProfile = {
     name: user.name,

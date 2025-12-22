@@ -1,35 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, CheckCircle, Users, Zap, Shield, ArrowRight, Star, BookOpen, Award, Clock, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthProvider';
+import api from '../util/authApi';
 
 export default function QuizMasterHomepage() {
   const {user,setUser,isLoggedIn,setisLoggedIn} = useAuth()
-  console.log("User:",user,"islogin:",isLoggedIn);
-  
+  // console.log("User:",user,"islogin:",isLoggedIn);
+  const [testimonial, setTestimonial] = useState([])
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "High School Teacher",
-      content: "This platform has revolutionized how I conduct assessments. Creating quizzes is incredibly intuitive, and my students love the interactive interface!",
-      rating: 5,
-      avatar: "SJ"
-    },
-    {
-      name: "Dr. Michael Chen",
-      role: "University Professor",
-      content: "The best quiz platform I've used. It saves me hours every week and the analytics help me understand student performance better.",
-      rating: 5,
-      avatar: "MC"
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Online Tutor",
-      content: "As a freelance educator, this free tool is a game-changer. I can create professional quizzes without any cost. Highly recommended!",
-      rating: 5,
-      avatar: "ER"
+  useEffect(()=>{
+    fetchTestimonials()
+  },[])
+  
+  const fetchTestimonials = async ()=>{
+    const res = await api.get("/social/testimonial",{
+      "headers":{
+        "Authorization":`Bearer ${user.token}`
+      }
+    })
+
+    setTestimonial(res?.data)
+
+    console.log("Response:", res)
+  }
+
+  const getAvatar = (name = "")=>{
+    if(!name) return "?";
+
+    const words = name.trim().split(/\s+/);
+
+    if(words.length === 1){
+      return words[0][0].toUpperCase();
     }
-  ];
+
+    return (
+      words[0][0].toUpperCase()+
+      words[words.length-1][0].toUpperCase()
+    )
+  }
 
   const features = [
     {
@@ -225,7 +233,7 @@ export default function QuizMasterHomepage() {
             <p className="text-xl text-gray-400">Join thousands of satisfied teachers worldwide</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+            {testimonial.map((testimonial, index) => (
               <div 
                 key={index}
                 className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 space-y-4"
@@ -235,10 +243,10 @@ export default function QuizMasterHomepage() {
                     <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-gray-300 italic">"{testimonial.content}"</p>
+                <p className="text-gray-300 italic">"{testimonial.testimonial}"</p>
                 <div className="flex items-center space-x-3 pt-4">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {testimonial.avatar}
+                    {getAvatar(testimonial.name)}
                   </div>
                   <div>
                     <div className="text-white font-semibold">{testimonial.name}</div>

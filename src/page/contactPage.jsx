@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import api from '../util/authApi';
 
 export default function ContactFeedbackPage() {
   const [activeTab, setActiveTab] = useState('contact');
@@ -64,73 +65,145 @@ export default function ContactFeedbackPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    console.log('Contact Form Data:', {
-      type: 'contact',
-      ...contactData,
-      submittedAt: new Date().toISOString()
-    });
+    // console.log('Contact Form Data:', {
+    //   type: 'contact',
+    //   ...contactData,
+    //   submittedAt: new Date().toISOString()
+    // });
+
+    const res = await api.post("/social/contact",{
+      ...contactData
+    },{
+      "headers":{
+        "Authorization":`Bearer ${user.token}`
+      }
+    })
+
+    console.log("Response:",res)
 
     // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      resetForm();
-      setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 1500);
+    // setTimeout(() => {
+    //   setIsSubmitting(false);
+    //   setSubmitSuccess(true);
+    //   resetForm();
+    //   setTimeout(() => setSubmitSuccess(false), 3000);
+    // }, 1500);
+    setIsSubmitting(false)
+    if(res.status != 200){
+      setSubmitSuccess(false)
+    }{
+      setSubmitSuccess(true)
+      resetForm()
+    }
+
   };
 
   const handleExperienceSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    console.log('Experience Form Data:', {
-      type: 'experience',
-      ...experienceData,
-      submittedAt: new Date().toISOString()
-    });
+    // console.log('Experience Form Data:', {
+    //   type: 'experience',
+    //   ...experienceData,
+    //   submittedAt: new Date().toISOString()
+    // });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      resetForm();
-      setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 1500);
+    const res = await api.post("/social/experience",{
+      ...experienceData
+    },{
+      "headers":{
+        "Authorization":`Bearer ${user.token}`
+      }
+    })
+
+    console.log("Response:",res)
+
+    // setTimeout(() => {
+    //   setIsSubmitting(false);
+    //   setSubmitSuccess(true);
+    //   resetForm();
+    //   setTimeout(() => setSubmitSuccess(false), 3000);
+    // }, 1500);
+
+    setIsSubmitting(false)
+    if(res.status != 200){
+      setSubmitSuccess(false)
+    }{
+      setSubmitSuccess(true)
+      resetForm()
+    }
   };
 
   const handleTestimonialSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    console.log('Testimonial Form Data:', {
-      type: 'testimonial',
-      ...testimonialData,
-      submittedAt: new Date().toISOString()
-    });
+    // console.log('Testimonial Form Data:', {
+    //   type: 'testimonial',
+    //   ...testimonialData,
+    //   submittedAt: new Date().toISOString()
+    // });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      resetForm();
-      setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 1500);
+    const res = await api.post("/social/testimonial",{
+      ...testimonialData
+    },{
+      "headers":{
+        "Authorization":`Bearer ${user.token}`
+      }
+    })
+
+    console.log("Response:",res)
+
+   // setTimeout(() => {
+    //   setIsSubmitting(false);
+    //   setSubmitSuccess(true);
+    //   resetForm();
+    //   setTimeout(() => setSubmitSuccess(false), 3000);
+    // }, 1500);
+
+    setIsSubmitting(false)
+    if(res.status != 200){
+      setSubmitSuccess(false)
+    }{
+      setSubmitSuccess(true)
+      resetForm()
+    }
   };
 
   const handleSuggestionSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    console.log('Suggestion Form Data:', {
-      type: 'suggestion',
-      ...suggestionData,
-      submittedAt: new Date().toISOString()
-    });
+    // console.log('Suggestion Form Data:', {
+    //   type: 'suggestion',
+    //   ...suggestionData,
+    //   submittedAt: new Date().toISOString()
+    // });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      resetForm();
-      setTimeout(() => setSubmitSuccess(false), 3000);
-    }, 1500);
+    const res = await api.post("/social/suggestion",{
+      ...suggestionData
+    },{
+      "headers":{
+        "Authorization":`Bearer ${user.token}`
+      }
+    })
+
+    console.log("Response:",res)
+
+    // setTimeout(() => {
+    //   setIsSubmitting(false);
+    //   setSubmitSuccess(true);
+    //   resetForm();
+    //   setTimeout(() => setSubmitSuccess(false), 3000);
+    // }, 1500);
+
+    setIsSubmitting(false)
+    if(res.status != 200){
+      setSubmitSuccess(false)
+    }{
+      setSubmitSuccess(true)
+      resetForm()
+    }
   };
 
   const StarRating = ({ rating, setRating, label }) => {
