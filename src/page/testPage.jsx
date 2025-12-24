@@ -101,22 +101,10 @@ export default function StudentQuizPage() {
   };
 
   const submitQuiz = async () => {
-    setIsSubmitted(true);
+    
     setShowSubmitConfirm(false);
 
-    // const submissionData = {
-    //   studentName,
-    //   quizName: quizData?.quizName,
-    //   answers: selectedAnswers,
-    //   timeUsed: (quizData?.valid * 60) - timeLeft,
-    //   submittedAt: new Date().toISOString()
-    // };
-
-    // console.log('Quiz Submitted:', submissionData);
-
-    // ✅ (Optional) Send submission to backend
     try {
-
       const payload = {
         name: studentName,
         email:"demo@email.com",
@@ -128,6 +116,8 @@ export default function StudentQuizPage() {
       console.log("Response:",res)
     } catch (error) {
       console.error('Error submitting quiz:', error);
+    }finally{
+      setIsSubmitted(true);
     }
   };
 

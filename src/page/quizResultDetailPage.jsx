@@ -32,19 +32,20 @@ export default function QuizResultsDetailPage() {
     if(Isloading || !user?.token){
       return;
     }
-    fetchResults();
     fetchQuizDetails()
-    fetchStudentResult()
+    fetchResults();
+    // fetchStudentResult()
   }, [id]);
 
   const fetchResults = async () => {
     setLoading(true);
     try {
-        const res = await api.get(`/student${id}/all`)
+        const res = await api.get(`/student/${id}/all`)
+        // console.log("Response:",res)
         setMockResponse(res.data)
 
-      setResults(mockResponse.List);
-      setFilteredResults(mockResponse.List);
+      setResults(res?.data?.List);
+      setFilteredResults(res?.data?.List);
     } catch (error) {
       console.error('Error fetching results:', error);
     } finally {
@@ -56,17 +57,18 @@ export default function QuizResultsDetailPage() {
     handleSearch();
   }, [searchQuery, results]);
 
-  const fetchStudentResult = async ()=>{
-    const res = await api.get(`/quiz/${id}/students`,{
-      "headers":{
-        "Authorization": `Bearer ${user.token}`
-      }
-    })
-    // console.log("Student Result:",res)
-    setFilteredResults(res?.data)
-  }
+  // const fetchStudentResult = async ()=>{
+  //   const res = await api.get(`/quiz/${id}/students`,{
+  //     "headers":{
+  //       "Authorization": `Bearer ${user.token}`
+  //     }
+  //   })
+  //   console.log("Student Result:",res)
+  //   setFilteredResults(res?.data)
+  // }
 
   const fetchQuizDetails = async()=>{
+    setLoading(true)
     const res = await api.get(`quiz/${id}`,{
       "headers":{
         "Authorization": `Bearer ${user.token}`
@@ -77,6 +79,7 @@ export default function QuizResultsDetailPage() {
     if(res.data?.questions){
       setQuizQuestions(res.data?.questions)
     }
+    setLoading(false)
   }
 
   const handleSearch = () => {
@@ -252,8 +255,7 @@ export default function QuizResultsDetailPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-  
+  };  
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -266,29 +268,57 @@ export default function QuizResultsDetailPage() {
     });
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
+  const getScoreColor = (score, question) => {
+    const isPassed = (score/question) * 100 >= 33 ? true : false;  
+
+    if(isPassed){
+      return 'text-green-400';
+    }else{
+      return 'text-red-400';
+    }
   };
 
-  const getScoreBadgeColor = (score) => {
-    if (score >= 80) return 'bg-green-500/20 text-green-300 border-green-500/30';
-    if (score >= 60) return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-    return 'bg-red-500/20 text-red-300 border-red-500/30';
+  const getScoreBadgeColor = (score, question) => {
+    const isPassed = (score/question) * 100 >= 33 ? true : false;    
+
+    if(isPassed){
+      return 'bg-green-500/20 text-green-300 border-green-500/30';
+    }else{
+      return 'bg-red-500/20 text-red-300 border-red-500/30';
+    }
   };
+
+  const isPassed = (score, question)=>{
+    return (score/question) * 100 >= 33 ? true : false;
+  }
 
   const calculateStats = () => {
-    if (results.length === 0) return { avg: 0, highest: 0, lowest: 0, passed: 0 };
-    
+    if (results.length === 0) {
+      return { avg: 0, highest: 0, lowest: 0, passed: 0 };
+    }
+  
     const scores = results.map(r => r.score);
-    const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+  
+    // Average RAW score
+    const avg = (
+      scores.reduce((a, b) => a + b, 0) / scores.length
+    ).toFixed(2);
+  
+    // Highest & lowest RAW score
     const highest = Math.max(...scores);
     const lowest = Math.min(...scores);
-    const passed = results.filter(r => r.score >= 60).length;
-
+  
+    // Passed based on 33% rule
+    const passed = results.filter(r => {
+      if (!r.total_questions || r.total_questions === 0) return false;
+  
+      const passMarks = Math.ceil(r.total_questions * 0.33);
+      return r.score >= passMarks;
+    }).length;
+  
     return { avg, highest, lowest, passed };
   };
+  
 
   const deleteQuizQuestion = async (questionId) => {
     const confirmDelete = window.confirm(
@@ -581,7 +611,7 @@ export default function QuizResultsDetailPage() {
               <span className="text-gray-400 text-sm">Average Score</span>
               <TrendingUp className="w-5 h-5 text-purple-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{stats.avg}%</div>
+            <div className="text-3xl font-bold text-white">{stats.avg}</div>
           </div>
 
           <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-6">
@@ -589,7 +619,7 @@ export default function QuizResultsDetailPage() {
               <span className="text-gray-400 text-sm">Highest Score</span>
               <Award className="w-5 h-5 text-green-400" />
             </div>
-            <div className="text-3xl font-bold text-green-400">{stats.highest}%</div>
+            <div className="text-3xl font-bold text-green-400">{stats.highest}</div>
           </div>
 
           <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-purple-500/20 p-6">
@@ -678,9 +708,9 @@ export default function QuizResultsDetailPage() {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
-                          <Star className={`w-4 h-4 ${getScoreColor(student.score)}`} />
-                          <span className={`text-2xl font-bold ${getScoreColor(student.score)}`}>
-                            {student.score}%
+                          <Star className={`w-4 h-4 ${getScoreColor(student.score, student.total_questions)}`} />
+                          <span className={`text-2xl font-bold ${getScoreColor(student.score, student.total_questions)}`}>
+                            {student.score}
                           </span>
                         </div>
                       </td>
@@ -691,8 +721,8 @@ export default function QuizResultsDetailPage() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getScoreBadgeColor(student.score)}`}>
-                          {student.score >= 60 ? 'Passed' : 'Failed'}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getScoreBadgeColor(student.score, student.total_questions)}`}>
+                          {isPassed(student.score, student.total_questions) ? 'Passed' : 'Failed'}
                         </span>
                       </td>
                     </tr>
